@@ -1,0 +1,9 @@
+body {
+font-family: 'Inter', sans-serif;
+background-color: #f7f7f7;
+}
+
+/* Custom shadow to give the main card a lifted effect */
+.card-shadow-custom {
+box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
