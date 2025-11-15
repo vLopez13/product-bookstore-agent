@@ -7,191 +7,283 @@
     
     <!-- Load Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    
-    <!-- Load CSS File -->
-    <link rel="stylesheet" href="styles.css">
+    <script src = "https://cdn.tailwindcss.com"></script>
+    <style>
+        .slide{
+            transition: opacity 1.2s ease-in-out;
+        }
+    </style>
 
 </head>
-<body class="py-4 py-md-5">
+<body class="bg-gray-100 font-sans text-gray-800">
+    <nav class="bg-white shadow-md"></nav>
 
-    <div class="container my-5">
-        <div class="card card-shadow-custom rounded-3 p-3 p-md-5 mx-auto" style="max-width: 900px;">
-            <!-- Header -->
-            <header class="text-center mb-5">
-                <h1 class="display-5 fw-bold text-dark">
-                    📚 Book Recommender 🤖
-                </h1>
-                <p class="mt-2 lead text-secondary">
-                    Powered by SVD Collaborative Filtering from your FastAPI backend.
-                </p>
-            </header>
-            <div class="d-flex flex-column flex-md-row gap-3 mb-5 p-4 bg-light rounded border border-info-subtle">
-                <label for="userIdInput" class="visually-hidden">Enter User ID</label>
-                <input type="number" id="userIdInput" placeholder="Enter User ID (e.g., 1, 2, 3)" value="2"
-                       class="form-control p-3 flex-grow-1"
-                       min="1" />
-                
-                <button id="recommendButton" 
-                        class="btn btn-primary btn-lg px-4 shadow-sm">
-                    Get Top 3 Recommendations
+    <div class="container mx-auto px-6 py-4">
+        <h1 class="text-3xl font-bold text-blue-600">BookRec Engine</h1>
+    </div>
+</nav><!-- Main Content Area -->
+<div class="container mx-auto p-6">
+
+    <!-- Slideshow -->
+    <section class="mb-12">
+        <h2 class="text-3xl font-bold mb-6 text-center text-gray-700">Featured Books</h2>
+        <div id="slideshow-container" class="relative w-full max-w-3xl mx-auto h-64 md:h-96 bg-gray-300 rounded-lg shadow-xl overflow-hidden">
+            <!-- Slides will be added by JavaScript -->
+        </div>
+    </section>
+
+    <!-- Personalized Recommendations Section -->
+    <section class="bg-white p-6 rounded-lg shadow-lg my-12">
+        <h2 class="text-2xl font-bold mb-4 text-gray-700">Your Personal AI Recommendations</h2>
+        <p class="mb-4 text-gray-600">Enter your User ID and select the dropdown Genre to get recommendations.</p>
+        
+        <div class="flex flex-col sm:flex-row gap-2">
+            <label for="user-id-input" class="sr-only">Your User ID:</label>
+            <input type="number" id="user-id-input" placeholder="e.g., 1" value="1" class="w-full sm:w-1/4 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-blue-500 focus:border-blue-500">
+
+
+            <label for="genre-select" class="sr-only">Select Genre:</label>
+                <select id="genre-select" class="w-full sm:w-1/2 border border-gray-300 rounded-md p-3 shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    <option value="">All (Use My Favorites)</option>
+                    <option value="Romance">Romance</option>
+                    <option value="Sci-Fi">Sci-Fi</option>
+                    <option value="Crime">Crime</option>
+                    <option value="Poetry">Poetry</option>
+                    <option value="Non-Fiction">Non-Fiction</option>
+                    <option value="Fantasy">Fantasy</option>
+                    <option value="Mystery">Mystery</option>
+                    <option value="Thriller">Thriller</option>
+                </select>
+            <button id="fetch-recs-btn" class="w-full sm:w-1/4 bg-blue-600 text-white font-bold py-3 px-6 rounded-md shadow-md hover:bg-blue-700 transition duration-300">
+                    Get Recommendations
+            </button> 
+            <h3 class="text-xl font-semibold mt-6 mb-2">Your Recommended Books:</h3>
+        </section>
+
+        <!-- 5-Star Books Section -->
+        <section id="5-star-section" class="my-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700">Top 5-Star Reads</h2>
+            <div id="5-star-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <!-- Book cards will be added by JavaScript -->
+            </div>
+            <div class="text-center mt-8">
+                <button id="see-more-5-star" class="bg-gray-700 text-white font-semibold py-2 px-5 rounded-md hover:bg-gray-800 transition duration-300 hidden">
+                    See More
                 </button>
             </div>
+        </section>
 
-            <!-- Results Display Area -->
-            <div id="resultsContainer">
-                <h2 class="h4 text-dark mb-4 pb-2 border-bottom">Your Reading List</h2>
-                
-                <div id="recommendationsList" class="row g-4">
-                    <!-- Recommendations will be injected here -->
-                    <p id="initialMessage" class="col-12 text-center text-secondary p-5 border border-dashed rounded">
-                        Enter a User ID and click the button to see personalized book recommendations!
-                    </p>
-                </div>
-
-                <!-- Loading Spinner and Error Message -->
-                <div id="loadingIndicator" class="d-none text-center mt-4">
-                    <div class="d-flex align-items-center justify-content-center">
-                        <div class="spinner-border text-primary me-2" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <span class="text-primary fw-medium">Calculating recommendations...</span>
-                    </div>
-                </div>
-                <div id="errorMessage" class="d-none text-center mt-3 text-danger p-3 bg-danger-subtle rounded">
-                    <!-- Error messages will be injected here -->
-                </div>
+        
+        <!-- 4-Star Books Section -->
+        <section id="4-star-section" class="my-12">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700">Top 4-Star Reads</h2>
+            <div id="4-star-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <!-- Book cards will be added by JavaScript -->
             </div>
+            <div class="text-center mt-8">
+                <button id="see-more-4-star" class="bg-gray-700 text-white font-semibold py-2 px-5 rounded-md hover:bg-gray-800 transition duration-300 hidden">
+                    See More
+                </button>
+            </div>
+        </section>
 
-        </div>
     </div>
 
-    <!-- Load Bootstrap JS Bundle (optional, but good for interactive features) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Error Message Area -->
+    <div id="error-message" class="p-4 bg-red-100 text-red-700 border border-red-300 rounded-md m-6 fixed bottom-0 right-0 shadow-lg hidden"></div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:8000'; // Assumes your FastAPI app runs on the default port
-        const recommendationsList = document.getElementById('recommendationsList');
-        const recommendButton = document.getElementById('recommendButton');
-        const userIdInput = document.getElementById('userIdInput');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const errorMessage = document.getElementById('errorMessage');
-        const initialMessage = document.getElementById('initialMessage');
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // --- Element References ---
+            const recsBtn = document.getElementById("fetch-recs-btn");
+            const recsList = document.getElementById("recommendations-list");
+            const userIdInput = document.getElementById("user-id-input");
+            const genreSelect = document.getElementById("genre-select"); // <-- Get genre dropdown
+            const errorDiv = document.getElementById("error-message");
+            const slideshowContainer = document.getElementById("slideshow-container");
 
-        // Utility function to display messages
-        function showMessage(element, text, isError = false) {
-            element.textContent = text;
-            element.classList.remove('d-none');
-            // Reset styles
-            element.classList.remove('text-primary'); 
-            element.classList.remove('text-danger'); 
-
-            if (isError) {
-                element.classList.add('text-danger');
-                element.classList.add('bg-danger-subtle');
-            } else {
-                element.classList.add('text-primary');
-                element.classList.add('bg-primary-subtle');
-            }
-        }
-
-        // Renders the recommendation cards
-        function renderRecommendations(recommendations) {
-            recommendationsList.innerHTML = ''; // Clear previous results
-            initialMessage.classList.add('d-none'); // Hide initial message
-
-            if (recommendations.length === 0) {
-                recommendationsList.innerHTML = '<p class="col-12 text-center text-secondary p-5 border border-dashed rounded">No new recommendations found for this user.</p>';
-                return;
+            // --- Error Handling ---
+            let errorTimeout;
+            function showError(message) {
+                clearTimeout(errorTimeout);
+                errorDiv.textContent = `Error: ${message}`;
+                errorDiv.classList.remove('hidden');
+                errorTimeout = setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 5000); // Hide after 5 seconds
             }
 
-            recommendations.forEach((book, index) => {
-                const card = `
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body p-4">
-                                <span class="badge rounded-pill bg-primary text-white fs-5 mb-3">${index + 1}</span>
-                                <h5 class="card-title fw-bold text-dark mb-2">${book.title}</h5>
-                                <p class="card-text text-secondary mb-4">Product ID: ${book.product_id}</p>
-                                <div class="d-flex align-items-center justify-content-between pt-2 border-top">
-                                    <span class="small text-muted">Est. Rating</span>
-                                    <span class="fs-4 fw-bolder text-success">${book.estimated_rating} / 5</span>
-                                </div>
-                            </div>
+            // --- 1. Slideshow Logic ---{ img: "/static/images/prideandprejudice.webp", alt: "..." }
+            const slidesContent = [
+                { img: "/static/images/prideandprejudice.webp", alt: "Pride and Prejudice" },
+                { img: "/static/images/forrestg.webp", alt: "Forrest Gump" },
+                { img: "/static/images/catcherrye.webp", alt: "Catcher in the Rye" }
+            ];
+            let currentSlide = 0;
+
+            if (slideshowContainer) {
+                slidesContent.forEach((slide, index) => {
+                    const slideEl = document.createElement('div');
+                    slideEl.className = 'slide absolute w-full h-full opacity-0';
+                    if (index === 0) {
+                        slideEl.classList.remove('opacity-0'); // Show first slide
+                    }
+                    slideEl.innerHTML = `<img src="${slide.img}" alt="${slide.alt}" class="w-full h-full object-cover">`;
+                    slideshowContainer.appendChild(slideEl);
+                });
+
+                const slides = document.querySelectorAll("#slideshow-container .slide");
+
+                function showSlide(n) {
+                    slides.forEach((slide, index) => {
+                        if (index === n) {
+                            slide.classList.remove('opacity-0');
+                        } else {
+                            slide.classList.add('opacity-0');
+                        }
+                    });
+                }
+
+                setInterval(() => {
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    showSlide(currentSlide);
+                }, 6000); // Change slide every 6 seconds
+            }
+
+            // --- 2. Personalized Recommendations Logic ---
+            if (recsBtn) {
+                recsBtn.addEventListener("click", async () => {
+                    const userId = userIdInput.value;
+                    const selectedGenre = genreSelect.value; // <-- Get the selected genre
+
+                    if (!userId) {
+                        showError("Please enter a User ID.");
+                        return;
+                    }
+
+                    errorDiv.classList.add('hidden');
+                    recsList.innerHTML = "<li>Training model and predicting...</li>";
+
+                    // Build the URL, adding the genre as a query parameter if selected
+                    let apiUrl = `/api/recommendations/${userId}`;
+                    if (selectedGenre) {
+                        apiUrl += `?genre=${encodeURIComponent(selectedGenre)}`;
+                    }
+
+                    try {
+                        const response = await fetch(apiUrl); // <-- Use the new dynamic URL
+                        if (!response.ok) {
+                            throw new Error(`Server responded with status: ${response.status}`);
+                        }
+                        const data = await response.json();
+                        if (data.error) throw new Error(data.error);
+
+                        recsList.innerHTML = ""; 
+
+                        // Show which filter was used
+                        if (data.filter_genre_used) {
+                            const li = document.createElement("li");
+                            li.textContent = `Showing results for Genre: ${data.filter_genre_used}`;
+                            li.className = "font-semibold text-blue-600 mb-2 list-none";
+                            recsList.appendChild(li);
+                        } else if (data.favorite_genres_used && data.favorite_genres_used.length > 0) {
+                            const li = document.createElement("li");
+                            li.textContent = `Boosting on favorites: ${data.favorite_genres_used.join(', ')}`;
+                            li.className = "font-semibold text-gray-600 mb-2 list-none";
+                            recsList.appendChild(li);
+                        }
+
+                        // Show recommendations
+                        if (data.recommendations && data.recommendations.length > 0) {
+                            data.recommendations.forEach(productId => {
+                                const li = document.createElement("li");
+                                li.textContent = `Recommended Book: ${productId}`;
+                                li.className = "ml-4"; // Indent the recommendation
+                                recsList.appendChild(li);
+                            });
+                        } else {
+                            if (recsList.innerHTML === "") { // Only if no other message is shown
+                                recsList.innerHTML = "<li class='list-none'>No recommendations found.</li>";
+                            }
+                        }
+                    } catch (error) {
+                        showError(error.message);
+                        recsList.innerHTML = "<li class='list-none'>Could not fetch recommendations.</li>";
+                    }
+                });
+            }
+
+            // --- 3. Top Rated Books Logic ---
+            const initialLimit = 5; // Show 5 books initially
+
+            function createBookCard(book, index) {
+                const placeholderImg = `https://placehold.co/300x400/e2e8f0/64748b?text=${encodeURIComponent(book.title)}`;
+                const imgSrc = book.cover_image_url || placeholderImg;
+                const hiddenClass = index >= initialLimit ? 'hidden' : '';
+
+                return `
+                    <div class="book-card bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 ${hiddenClass}">
+                        <img src="${imgSrc}" alt="Cover for ${book.title}" class="w-full h-56 object-cover" onerror="this.src='${placeholderImg}'">
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg truncate" title="${book.title}">${book.title}</h3>
+                            <p class="text-gray-600 text-sm">${book.author || 'Unknown Author'}</p>
+                            <p class="text-gray-500 text-sm mt-1">Rating: ${Number(book.avg_rating).toFixed(2)} ★</p>
                         </div>
                     </div>
                 `;
-                recommendationsList.innerHTML += card;
-            });
-        }
-
-        async function fetchRecommendations() {
-            const userId = userIdInput.value.trim();
-
-            if (!userId || isNaN(parseInt(userId))) {
-                showMessage(errorMessage, "Please enter a valid User ID (a number).", true);
-                return;
             }
 
-            // Reset UI state
-            errorMessage.classList.add('d-none');
-            loadingIndicator.classList.remove('d-none');
-            recommendationsList.innerHTML = '';
-            initialMessage.classList.add('d-none');
+            async function loadBookSection(url, listElementId, buttonElementId) {
+                const listEl = document.getElementById(listElementId);
+                const buttonEl = document.getElementById(buttonElementId);
+                if (!listEl || !buttonEl) return;
+                
+                listEl.innerHTML = "<p>Loading books...</p>";
 
-
-            try {
-                // Exponential backoff logic for API call handling
-                let response;
-                let data;
-                const maxRetries = 3;
-                let delay = 1000;
-
-                for (let i = 0; i < maxRetries; i++) {
-                    response = await fetch(`${API_BASE_URL}/recommendations/${userId}`);
-                    if (response.status !== 429) { // 429 Too Many Requests
-                        data = await response.json();
-                        break;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                    
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error);
+                    
+                    const books = data.books;
+                    if (!books || books.length === 0) {
+                        listEl.innerHTML = "<p>No books found in this category.</p>";
+                        return;
                     }
-                    console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2;
-                }
 
-                if (!response || response.status === 429) {
-                     throw new Error('API rate limit exceeded after multiple retries.');
-                }
+                    listEl.innerHTML = books.map(createBookCard).join('');
 
-                if (response.ok) {
-                    if (data.recommendations) {
-                        renderRecommendations(data.recommendations);
-                    } else if (data.message) {
-                        // Handle messages like "User has rated all available products"
-                        recommendationsList.innerHTML = `<p class="col-12 text-center text-secondary p-5 border border-dashed rounded">${data.message}</p>`;
-                    } else {
-                        throw new Error('Unexpected API response format.');
+                    if (books.length > initialLimit) {
+                        buttonEl.classList.remove('hidden');
+                        let isShowingAll = false;
+
+                        buttonEl.addEventListener('click', () => {
+                            isShowingAll = !isShowingAll;
+                            const cards = listEl.querySelectorAll('.book-card');
+                            cards.forEach((card, index) => {
+                                if (index >= initialLimit) {
+                                    card.classList.toggle('hidden');
+                                }
+                            });
+                            buttonEl.textContent = isShowingAll ? "See Less" : "See More";
+                        });
                     }
-                } else {
-                    // Handle API errors (e.g., 500 error from database)
-                    throw new Error(data.error || data.Sorry || `Error fetching recommendations (Status: ${response.status})`);
+
+                } catch (error) {
+                    showError(error.message);
+                    listEl.innerHTML = "<p>Could not load books.</p>";
                 }
-
-            } catch (error) {
-                console.error("Fetch error:", error);
-                showMessage(errorMessage, `API Error: ${error.message}. Check if your FastAPI server is running at ${API_BASE_URL}.`, true);
-            } finally {
-                loadingIndicator.classList.add('d-none');
             }
-        }
 
-        // Attach event listener
-        recommendButton.addEventListener('click', fetchRecommendations);
+            // --- Load all sections on page start ---
+            loadBookSection("/api/books/5-star", "5-star-list", "see-more-5-star");
+            loadBookSection("/api/books/4-star", "4-star-list", "see-more-4-star");
 
-        // Optional: Run on Enter key press
-        userIdInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                fetchRecommendations();
-            }
         });
     </script>
+
 </body>
 </html>
