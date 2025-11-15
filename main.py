@@ -14,6 +14,7 @@ load_dotenv()
 
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 try:
     # Ensure the connection string is loaded
     conn_str = os.environ["DB_CONN_STR"]
@@ -63,8 +64,6 @@ def get_products_under_5():
     # 4. Return the data
     return {"products": products_list}
 
-
-# A "recommendations search engine with AI can bring what books to try out and read and train
 @app.get("/", response_class=HTMLResponse)
 def read_html_front_page():
     try:
@@ -72,30 +71,6 @@ def read_html_front_page():
             return f.read()
     except FileNotFoundError:
         return "<html><body><h1>Error</h1><p>index.html not found.</p></body></html>"
-
-
-# === YOUR API ENDPOINTS (NO CHANGES) ===
-# Your HTML file will call these URLs!
-
-@app.get("/api/products-under-5")
-def get_products_under_5():
-    products_list = []
-    try:
-        with psycopg.connect(conn_str) as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM products WHERE price < 5.00")
-                all_records = cur.fetchall()
-                for record in all_records:
-                    products_list.append({
-                        "id": record[0],
-                        "title": record[1],
-                        "author": record[2],
-                        "price": record[3] 
-                    })
-    except psycopg.Error as e:
-        return {"error": str(e)}
-    return {"products": products_list}
-
 
 @app.get("/api/recommendations/{user_id}")
 def get_recommendations(user_id: int):
