@@ -11,6 +11,7 @@ from models import ProductCreate, ProductUpdate, OrderCreate
 from models import ProductCreate, ProductUpdate
 from crud_functions import create_product_in_db, get_product_name_from_db, place_order_in_db
 
+load_dotenv()
 app = FastAPI(title = "Bookstore API")
 
 @app.get("/")

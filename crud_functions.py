@@ -66,8 +66,6 @@ def place_order_in_db(db: Session, product_id: int, quantity: int, order_name: s
         order_date = date.today()
     )
 
-    # 5. COMMIT (The Transaction)
-    # We add the order to the session
     db_order = db.add(new_order)
     
     try:
@@ -76,5 +74,5 @@ def place_order_in_db(db: Session, product_id: int, quantity: int, order_name: s
         db.refresh(db_order)
         return new_order
     except Exception as e:
-        db.rollback() # If anything fails, undo changes to both tables
+        db.rollback() 
         raise e
