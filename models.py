@@ -1,5 +1,6 @@
-from datetime import date
-from pydantic import BaseModel
+from datetime import date, datetime
+from decimal import Decimal
+from pydantic import BaseModel, Field
 from typing import Optional
 
 
@@ -9,7 +10,7 @@ class Product(BaseModel):
     product_name: str
     product_author: str
     product_stock: int
-    product_price: float
+    product_price:Decimal = Field(..., max_digits=10, decimal_places=2)
 
 
 class ProductCreate(Product):
@@ -31,25 +32,19 @@ class ProductUpdate(BaseModel):
 class Order(BaseModel):
     
     order_id: int
-    customer_id: int
     order_name: str
-    order_quantity: int
-    product_id: int
-    order_datetime: datetime
     order_date: date
-    total_amount: float
-    order_status: str
+    customer_id :int
+    product_id: int
 
 class OrderCreate(Order):
-    product_id: int
-    order_quantity: int 
+    order_quantity: int
+    order_status: str
     customer_id: int
 
 class OrderResponse(OrderCreate):
-    order_id: int
-    total_amount: float
-    order_date: datetime
-    product_author: str  # We will add 
+    order_date: date
+    order_price: Decimal = Field(..., max_digits=10, decimal_places=2)
 
     class Config:
         from_attributes = True

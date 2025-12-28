@@ -1,9 +1,10 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from dotenv import load_dotenv
-from database_models.db_models import Base
+from dotenv import load_dotenv 
 
+class Base(DeclarativeBase):
+    pass
 ##this loads in the Database connection from file for security
 load_dotenv()
 
@@ -18,9 +19,8 @@ if DATABASE_URL.startswith("postgres://"):
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-#pass Base
-class Base(DeclarativeBase):
-    pass
+
+
 #checks if the tables have been created if not its okay do nothing
 Base.metadata.create_all(bind=engine)
 # gets database

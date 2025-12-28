@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from datetime import date
-from database_models.db_models import Product, Order 
+from database_models.db_models import Product, Order
+from models import OrderCreate
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
@@ -12,14 +13,14 @@ def get_product_id_from_db(db, id):
 
 
 def get_product_name_from_db(db, name):
-
-    stmt = select(Product).where(Product.product_name.in_(name))
-    result = db.execute(stmt)
-    get_product = result.one_or_none()
-    if not get_product:
-      raise HTTPException(status_code=404, detail="get.Product is not found in db")
-    
-    return get_product
+ #to ==tomato or the shin or the shining %like%
+    query_names = select(Product).where(Product.product_name==name)
+    result = db.execute(query_names)
+    products = result.scalars().all()
+    if not products:
+       raise HTTPException(status_code=404, detail="Product name is not found")
+    print(f"Found {len(products)} products") 
+    return products
     
 
 def create_product_in_db(db, id, name, author, stock, price):
@@ -32,11 +33,29 @@ def create_product_in_db(db, id, name, author, stock, price):
     
     db.add(new_product)
     db.commit()
+    #Im creating a order in for API to call the function create_order_in_db
+def create_order_in_db(db: Session, order_data: OrderCreate):
+        new_order = Order(order_name=order_data.order_name,
+        total_amount=order_data.order_price,
+        order_date=order_data.order_date,
+        customer_id=order_data.customer_id,
+        product_id=order_data.product_id,
+        order_quantity=order_data.order_quantity
+        )
+        db.add(new_order)
+        db.commit()
+        db.refresh(new_order)
+        return new_order
 
 def get_order_status_db(db, id):
     
     stmt = select(Order.order_status).where(Order.order_id == id).first()
     result = db.execute(stmt)
+    return (result)
+#we want to delete the order once the user confirms yes lets delete. then this function is brought.
+def drop_order_in_db(db:Session, order_id: int):
+    stmt = select(Order.order_id).where(Order.order_id==id).first()
+    result = drop(stmt)
     return (result)
 
 def place_order_in_db(db: Session, product_id: int, quantity: int, order_name: str):
