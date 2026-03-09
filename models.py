@@ -9,16 +9,14 @@ class Product(BaseModel):
     product_id: int
     product_name: str
     product_author: str
-    product_stock: int
     product_price:Decimal = Field(..., max_digits=10, decimal_places=2)
 
-
 class ProductCreate(Product):
-    pass
+    product_stock: int
 
 class ProductResponse(ProductCreate):
     product_id: int
-    
+    product_stock: int
     class Config:
         from_attributes = True
         orm_mode = True
@@ -27,7 +25,7 @@ class ProductUpdate(BaseModel):
     product_name: Optional[str] = None
     product_author: Optional[str] = None
     product_stock: Optional[int] = None
-    product_price: Optional[float] = None
+    product_price: Optional[Decimal] = None
 
 class Order(BaseModel):
     
@@ -40,6 +38,7 @@ class Order(BaseModel):
 class OrderCreate(Order):
     order_quantity: int
     order_status: str
+    total_amount:Decimal = Field(..., max_digits=10, decimal_places=2)
     customer_id: int
 
 class OrderResponse(OrderCreate):

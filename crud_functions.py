@@ -1,62 +1,85 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import date
 from database_models.db_models import Product, Order
-from models import OrderCreate
+from models import OrderCreate, ProductCreate
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 def get_product_id_from_db(db, id):
-
+#this is to retrieve the id from the database to use very soon
     stmt = select(Product).where(Product.product_id.in_([id] if isinstance(id, int) else id))
     result = db.execute(stmt)
-    return result.scalar().first()
+    get_product = result.scalar().first()
+    return get_product
 
 
 def get_product_name_from_db(db, name):
- #to ==tomato or the shin or the shining %like%
+ #this is for funsies and I want to try product name from db and any more or like %sLike
     query_names = select(Product).where(Product.product_name==name)
     result = db.execute(query_names)
-    products = result.scalars().all()
-    if not products:
+    get_product_name = result.scalars().all()
+    if not get_product_name:
        raise HTTPException(status_code=404, detail="Product name is not found")
-    print(f"Found {len(products)} products") 
-    return products
+    print(f"Found {len(get_product_name)} products") 
+    return get_product_name
     
 
-def create_product_in_db(db, id, name, author, stock, price):
-  
-    new_product = Product(product_id = id,
-            product_name = name,
-            product_author = author,
-            product_stock = stock,
-            product_price = price)
-    
-    db.add(new_product)
+def create_product_in_db(db: Session, product: ProductCreate):
+    db_product = Product(**product.model_dump())
+    db.add(db_product)
     db.commit()
-    #Im creating a order in for API to call the function create_order_in_db
-def create_order_in_db(db: Session, order_data: OrderCreate):
-        new_order = Order(order_name=order_data.order_name,
-        total_amount=order_data.order_price,
-        order_date=order_data.order_date,
-        customer_id=order_data.customer_id,
-        product_id=order_data.product_id,
-        order_quantity=order_data.order_quantity
+    db.refresh(db_product)
+    return db_product
+
+
+def create_order_in_db(db, order_data: OrderCreate):
+    #This is to create and update the product and prevent new bugs 
+    product = db.query(Product).filter(Product.product_id == order_data.product_id).with_for_update().first()
+    #placing guardrails over Product quantity has to be greater than the orders items ordered enough in stock
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+        
+    if product.product_stock < order_data.order_quantity:
+        raise HTTPException(status_code=400, detail="Insufficient stock to fulfill this order")
+
+    
+    
+    try:#Update stock and the create order here
+        product.product_stock-=order_data.order_quantity
+        new_order = Order(
+            order_name=order_data.order_name,
+            total_amount=order_data.total_amount,
+            order_date=order_data.order_date,
+            customer_id=order_data.customer_id,
+            product_id=order_data.product_id,
+            order_quantity=order_data.order_quantity
         )
+        
         db.add(new_order)
         db.commit()
         db.refresh(new_order)
         return new_order
+        
+    except SQLAlchemyError as e:
+        db.rollback()  # Undo any changes
+        print(f"Database error creating order: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Error: Could not save order to database"
+        )
 
 def get_order_status_db(db, id):
     
     stmt = select(Order.order_status).where(Order.order_id == id).first()
     result = db.execute(stmt)
-    return (result)
-#we want to delete the order once the user confirms yes lets delete. then this function is brought.
-def drop_order_in_db(db:Session, order_id: int):
-    stmt = select(Order.order_id).where(Order.order_id==id).first()
-    result = drop(stmt)
-    return (result)
+    return result
+
+def drop_order_in_db(db, order_id):
+         delete_o = delete(Order).where(Order.order_id==order_id)
+         db.execute(delete_o)
+         db.commit()
+    
 
 def place_order_in_db(db: Session, product_id: int, quantity: int, order_name: str):
     
@@ -88,10 +111,10 @@ def place_order_in_db(db: Session, product_id: int, quantity: int, order_name: s
     db_order = db.add(new_order)
     
     try:
-        # This saves BOTH the new order AND the updated product stock at the exact same time
-        db.commit()
-        db.refresh(db_order)
-        return new_order
+     db.commit()
+     db.refresh(db_order)
+    
+     return new_order
     except Exception as e:
-        db.rollback() 
-        raise e
+      db.rollback() 
+      raise e

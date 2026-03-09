@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 
 class Product(Base):
-    __tablename__ =  "products" #products
+    __tablename__ =  "products" #products here
     product_id: Mapped[int] = mapped_column(primary_key = True)
     product_name: Mapped[str] = mapped_column(String(100))
     product_author: Mapped[str] = mapped_column(String(100))
@@ -14,7 +14,7 @@ class Product(Base):
 
     order_item: Mapped[list["Order"]] = relationship(back_populates="product_item")
 class Order(Base): 
-    __tablename__ = "orders"
+    __tablename__ = "orders" #orders here
     order_id: Mapped[int] = mapped_column(primary_key = True)
     product_id: Mapped[int] = mapped_column(Integer, ForeignKey("products.product_id"))
     order_name: Mapped[str] = mapped_column(String(100))
