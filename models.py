@@ -27,6 +27,9 @@ class ProductUpdate(BaseModel):
     product_stock: Optional[int] = None
     product_price: Optional[Decimal] = None
 
+class AgentQuery(BaseModel):
+    query: str
+
 class Order(BaseModel):
     
     order_id: int
