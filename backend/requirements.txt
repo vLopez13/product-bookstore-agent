@@ -1,0 +1,20 @@
+# --- Web Framework ---
+# To create an API that your Node.js or React app can communicate with
+fastapi
+uvicorn[standard]
+
+# --- AI & Embeddings ---
+# The new, official Google Gen AI SDK for Gemini
+google-genai
+# Vector database for cosine vector embeddings and semantic search
+chromadb
+
+# --- Checkout & Payments ---
+# Standard library for handling payment processing in your bookstore
+stripe
+
+# --- Voice & Conversational AI ---
+# Official Vapi Python SDK for managing voice agents
+vapi-python
+# Standard library for making HTTP requests to Vapi's REST APIs
+requests

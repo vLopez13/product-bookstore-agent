@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # 1. The Python Backend
+  fastapi-backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    # This network name allows the Node server to talk to Python easily
+    networks:
+      - bookstore-network
+
+  # 2. The Node.js Gateway
+  node-gateway:
+    build: ./gateway
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Tell Node exactly where to find the Python backend inside the Docker network
+      - FASTAPI_SERVICE_URL=http://fastapi-backend:8000 
+    depends_on:
+      - fastapi-backend
+    networks:
+      - bookstore-network
+
+  # 3. The React Frontend
+  react-frontend:
+    build: ./frontend
+    ports:
+      - "80:80" # Maps localhost:80 to the Nginx server
+    env_file:
+      - .env
+    networks:
+      - bookstore-network
+
+networks:
+  bookstore-network:
+    driver: bridge
+    

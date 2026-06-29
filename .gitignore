@@ -1,8 +1,9 @@
 # Ignore virtual environment folder
-venv/
-
+.venv/
+.npm-cache/
 # Ignore Python bytecode files
 __pycache__/
 
 # Ignore specific files
-*.pyc
+*.pyc.venv/
+.env

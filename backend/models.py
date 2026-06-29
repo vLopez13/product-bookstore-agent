@@ -1,0 +1,51 @@
+from datetime import date, datetime
+from decimal import Decimal
+from pydantic import BaseModel, Field
+from typing import Optional
+class Product(BaseModel):
+    
+    product_id: int
+    product_name: str
+    product_author: str
+    product_price:Decimal = Field(..., max_digits=10, decimal_places=2)
+    description: Optional[str] = None
+
+class ProductCreate(Product):
+    product_stock: int
+
+class ProductResponse(ProductCreate):
+    product_id: int
+    product_stock: int
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+class ProductUpdate(BaseModel):
+    product_name: Optional[str] = None
+    product_author: Optional[str] = None
+    product_stock: Optional[int] = None
+    product_price: Optional[Decimal] = None
+
+class AgentQuery(BaseModel):
+    query: str
+
+class Order(BaseModel):
+    
+    order_id: int
+    order_name: str
+    order_date: date
+    customer_id :int
+    product_id: int
+
+class OrderCreate(Order):
+    order_quantity: int
+    order_status: str
+    total_amount:Decimal = Field(..., max_digits=10, decimal_places=2)
+
+class OrderResponse(OrderCreate):
+    order_date: date
+    order_price: Decimal = Field(..., max_digits=10, decimal_places=2)
+
+    class Config:
+        from_attributes = True
+        orm_mode = True

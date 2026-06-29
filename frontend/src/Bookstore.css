@@ -1,0 +1,149 @@
+/* Bookstore.css */
+
+:root {
+  --sf-blue: #0070D2;
+  --sf-blue-hover: #005FB2;
+  --cream-bg: #F4F6F9;
+  --white: #FFFFFF;
+  --black-text: #080707;
+  --border-gray: #DDDBDA;
+  --danger-red: #C23934;
+  --danger-red-hover: #A6302B;
+  --text-muted: #706E6B;
+  --header-bg: #FAFAF9;
+}
+
+/* Base Layout */
+.store-wrapper {
+  min-height: 100vh;
+  background-color: var(--cream-bg);
+  font-family: "Salesforce Sans", system-ui, -apple-system, sans-serif;
+  padding: 40px 20px;
+  color: var(--black-text);
+}
+
+/* Main Box */
+.main-box {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: var(--white);
+  border: 1px solid var(--border-gray);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Header Box */
+.header-box {
+  padding: 20px 24px;
+  border-bottom: 2px solid var(--border-gray);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--header-bg);
+}
+
+.header-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.header-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Content Box */
+.content-box {
+  padding: 24px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.listening-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--sf-blue);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Grid & Book Cards */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.book-card {
+  border: 1px solid var(--border-gray);
+  background-color: var(--white);
+  padding: 16px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.book-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.book-price {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--black-text);
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--sf-blue);
+  color: var(--white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  background-color: var(--sf-blue-hover);
+}
+
+.btn-danger {
+  background-color: var(--danger-red);
+  color: var(--white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-red-hover);
+}
+
+.btn-secondary {
+  width: 100%;
+  background-color: var(--white);
+  color: var(--sf-blue);
+  border: 1px solid var(--border-gray);
+}
+
+.btn-secondary:hover {
+  background-color: var(--cream-bg);
+}
