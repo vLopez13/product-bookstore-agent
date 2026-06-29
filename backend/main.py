@@ -8,7 +8,7 @@ from fastapi import FastAPI, Depends, HTTPException, Body, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from sqlalchemy import text
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from sqlalchemy.orm import Session
 from backend.database import get_db, Base, engine
 from backend.db_models import Product, Order
