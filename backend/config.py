@@ -4,7 +4,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # These will automatically look for these names in your .env file
-    DATABASE_URL: str
+    SUPABASE_DATABASE: str
     GEMINI_API_KEY: str # Google Gemini API key
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

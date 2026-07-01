@@ -8,8 +8,9 @@ from supabase import create_client, Client
 
 # Load Environment Variables
 load_dotenv()
-SUPABASE_URL = os.getenv("REACT_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("REACT_SUPABASE_KEY")
+SUPABASE_DATABASE = os.getenv("SUPABASE_DATABASE")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 NYT_API_KEY = os.getenv("NYT_API_KEY")
 
 # Initialize Supabase

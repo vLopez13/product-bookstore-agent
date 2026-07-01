@@ -18,7 +18,6 @@ class ProductResponse(ProductCreate):
     product_stock: int
     class Config:
         from_attributes = True
-        orm_mode = True
 
 class ProductUpdate(BaseModel):
     product_name: Optional[str] = None
@@ -31,7 +30,7 @@ class AgentQuery(BaseModel):
 
 class Order(BaseModel):
     
-    order_id: int
+    order_id: Optional[int] = None
     order_name: str
     order_date: date
     customer_id :int
@@ -48,4 +47,3 @@ class OrderResponse(OrderCreate):
 
     class Config:
         from_attributes = True
-        orm_mode = True

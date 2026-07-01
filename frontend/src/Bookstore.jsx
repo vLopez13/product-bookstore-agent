@@ -1,17 +1,14 @@
 // Bookstore javascxx
 import React, { useState, useEffect } from 'react';
 import Vapi from '@vapi-ai/web';
-import './Bookstore.css'; // Import the design system
+import './Bookstore.css';
 
-const supabaseUrl = process.env.REACT_SUPABASE_URL;
-const supabaseKey = process.env.REACT_SUPABASE_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
-
-// Initialize Vapi outside the component
-const vapi = new Vapi(process.env.REACT_VAPI_KEY);
-
+const vapi = new Vapi(import.meta.env.VITE_VAPI_KEY);
 export default function Bookstore() {
-  //Auth States 
+  
   const [session, setSession] = useState(null);
   const [email, setEmail] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -21,20 +18,20 @@ export default function Bookstore() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    // Listen and check for vapi 
+  
     vapi.on('call-start', () => setIsCallActive(true));
     vapi.on('call-end', () => {
       setIsCallActive(false);
-      setBooks([]); // Clear books when call ends
+      setBooks([]); 
     });
-    //listen For the supabase session on load
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
     setSession(session);
-    });//here We listen for the retriever
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
-    // call for your FastAPI backend's search results
+    
     vapi.on('message', (message) => {
       if (message.type === 'tool-call-results') {
         const toolCall = message.toolCallResults[0];
@@ -66,7 +63,7 @@ const handleLogin = async (e) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Redirects back to the current page after clicking the link
+
         emailRedirectTo: window.location.origin, 
       },
     });
@@ -106,7 +103,8 @@ const handleLogin = async (e) => {
     
     setBooks([]);
   };
-// --- Render Login Screen (If no user session) ---
+
+
   if (!session) {
     return (
       <div className="store-wrapper">
@@ -176,7 +174,7 @@ const handleLogin = async (e) => {
 
           {books.length === 0 && isCallActive && (
             <div className="listening-state">
-              <p>Listening... Ask the AI to find a book.</p>
+              <p>Listening... Ask LitReads AI to find a book.</p>
             </div>
           )}
 

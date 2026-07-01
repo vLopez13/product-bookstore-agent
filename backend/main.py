@@ -1,30 +1,30 @@
 from typing import Any
 import uvicorn
-import os
 import json
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from fastapi import FastAPI, Depends, HTTPException, Body, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 from dotenv import load_dotenv
-from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-from backend.database import get_db, Base, engine
-from backend.db_models import Product, Order
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.database import get_db
+from backend.db_models import Product
 from backend.models import ProductCreate, ProductUpdate, OrderCreate, AgentQuery, ProductResponse, OrderResponse
 from backend.crud_functions import create_product_in_db, get_product_name_from_db, create_order_in_db, drop_order_in_db, get_order_status_db, check_existing_product
 from httpx import AsyncClient
-from supabase import create_client, Client
 import random
+from backend.config import get_settings
+settings = get_settings()
 
 load_dotenv()
 app = FastAPI(title="Bookstore")
 
 async def get_embedding(text: str) -> list[float]:
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    gemini_api_key = settings.GEMINI_API_KEY
     if not gemini_api_key:
-        print("⚠️ GEMINI_API_KEY not configured. Falling back to mock embedding for local testing.")
+        print("GEMINI_API_KEY is not configured. Falling back to mock embedding for local testing.")
         import hashlib
         h = hashlib.sha256(text.encode('utf-8')).hexdigest()
         seed = int(h, 16) % (2**32)
@@ -146,20 +146,13 @@ def search_products_by_name(product_name: str, db: Session = Depends(get_db)):
     return all_possible_names
 
 #grab GET product id from products list
-@app.get("/products/{product_id}", response_model=ProductResponse)
-def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.product_id == product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    return product
-
 @app.post("/products/")
-async def create_product(product: ProductCreate, db: Session = Depends(get_db)) -> Any:
+async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_db)) -> Any:
     print(f"Checking wallet guardrails for product: {product.product_name}")
 
-    # 1. Look up if this book is already in PostgreSQL
-    existing_entry = check_existing_product(db, name=product.product_name, author=product.product_author)
+    # Note: Make sure the function name matches your import! 
+    # Previously we named this check_existing_product
+    existing_entry = await check_existing_product(db, name=product.product_name, author=product.product_author)
 
     if existing_entry:
         # If it exists and already has its vector, stop right here! Cost = $0.00
@@ -180,8 +173,8 @@ async def create_product(product: ProductCreate, db: Session = Depends(get_db)) 
         embedding_vector = await get_embedding(ai_context)
         
         existing_entry.product_embedding = embedding_vector
-        db.commit()
-        db.refresh(existing_entry)
+        await db.commit()
+        await db.refresh(existing_entry)
         
         return {
             "status": "updated",
@@ -193,7 +186,7 @@ async def create_product(product: ProductCreate, db: Session = Depends(get_db)) 
     ai_context = f"Title: {product.product_name}. Author: {product.product_author}."
     embedding_vector = await get_embedding(ai_context)
 
-    created_product = create_product_in_db(db=db, product=product, embedding=embedding_vector)
+    created_product = await create_product_in_db(db=db, product=product, embedding=embedding_vector)
     
     return { 
         "status": "success",
@@ -305,12 +298,72 @@ async def vapi_webhook(request: Request, db: Session = Depends(get_db)):
                     "result": result_data
                 })
 
+
+            elif function_name == "create_order":
+                product_id = arguments.get("product_id")
+                customer_id = arguments.get("customer_id")
+                quantity = arguments.get("quantity", 1)
+                try:
+                    from sqlalchemy import select
+                    from backend.db_models import Product
+                    
+                    product_query = await db.execute(
+                        select(Product).where(Product.product_id == product_id)
+                    )
+                    product = product_query.scalar_one_or_none()
+                    
+                    if not product:
+                        tool_results.append({
+                            "toolCallId": call_id,
+                            "result": {"error": f"Product with ID {product_id} not found."}
+                        })
+                        continue
+                    if product.product_stock < quantity:
+                        tool_results.append({
+                            "toolCallId": call_id,
+                            "result": {"error": f"Only {product.product_stock} copies of '{product.product_name}' left in stock."}
+                        })
+                        continue
+                    calculated_total = product.product_price * quantity
+
+                    new_order_data = OrderCreate(
+                        order_name=f"Voice Order - {product.product_name}",
+                        order_date=datetime.now().date(),
+                        customer_id=customer_id,
+                        product_id=product_id,
+                        order_quantity=quantity,
+                        order_status="ORDER_CREATED",
+                        total_amount=calculated_total
+                    )
+                  
+                    db_order = await create_order_in_db(db=db, order_data=new_order_data)
+                    
+                    product.product_stock -= quantity
+                    await db.commit()
+                    
+                    result_data = {
+                        "success": True, 
+                        "message": f"Successfully ordered {quantity} copy(s) of {product.product_name}.",
+                        "total_charged": str(calculated_total),
+                        "status": db_order.order_status
+                    }
+                    
+                except Exception as e:
+                    await db.rollback() # Crucial: rollback if anything fails
+                    result_data = {"error": f"Failed to process order: {str(e)}"}
+
+                tool_results.append({
+                    "toolCallId": call_id,
+                    "result": result_data
+                })
+
             # Fallback for unmapped tools
             else:
                 tool_results.append({
                     "toolCallId": call_id,
                     "result": {"error": f"Tool '{function_name}' not implemented on backend."}
                 })
+
 
         # Return the results back to the Vapi agent so it can speak them
         return {"results": tool_results}
